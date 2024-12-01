@@ -1,16 +1,17 @@
 import chrome from "selenium-webdriver/chrome"
-import { Builder, Capabilities, logging, ThenableWebDriver } from "selenium-webdriver";
+import { Builder, logging, ThenableWebDriver } from "selenium-webdriver";
 import { join } from "path";
 import { mkdir, writeFile } from "fs/promises";
 import querystring from "querystring"
 import { createWriteStream, existsSync, mkdirSync } from "fs";
 import { Logger } from "./logger";
 import axios from "axios";
+import * as proxyChain from "proxy-chain"
 
 export class Browser {
     private readonly EXTENSION_BASE_URL = "https://clients2.google.com/service/update2/crx";
 
-    constructor () {}
+    constructor() { }
 
     private _getPath(folder: string, fileName?: string) {
         const output = join(__dirname, '..', folder);
@@ -19,7 +20,7 @@ export class Browser {
         return output;
     }
 
-    protected async create (config: {
+    protected async create(config: {
         readonly extensionId?: string[];
         readonly noHeadless?: boolean;
         readonly sandbox?: boolean;
@@ -29,6 +30,12 @@ export class Browser {
         options.addArguments("--disable-gpu");
         if (!config.noHeadless) options.addArguments("--headless");
         if (!config.sandbox) options.addArguments("--no-sandbox");
+        if (process.env.PROXY_URL) {
+            try {
+                const proxyUrl = await proxyChain.anonymizeProxy(process.env.PROXY_URL);
+                options.addArguments(`--proxy-server=${proxyUrl}`);
+            } catch { }
+        }
 
         if (config.extensionId && Array.isArray(config.extensionId) && config.extensionId.length > 0) {
             Logger.info(`Downloading ${config.extensionId.length} extensions`);
@@ -36,10 +43,12 @@ export class Browser {
             options.addExtensions(...extensionPaths);
         }
 
-        return new Builder().forBrowser("chrome").setChromeOptions(options);
+        const builder = new Builder().forBrowser("chrome").setChromeOptions(options);
+
+        return builder;
     }
 
-    protected async getCapabilities () {
+    protected async getCapabilities() {
         Logger.info("Creating browser capabilities");
         const builder = await this.create();
         const driver = builder.build();
@@ -59,7 +68,7 @@ export class Browser {
         return new URL(`?${querystring.stringify(queries)}`, this.EXTENSION_BASE_URL)
     }
 
-    public async report (builder: ThenableWebDriver) {
+    public async report(builder: ThenableWebDriver) {
         const logId = `${String(new Date().getTime())}_${String(Math.floor(Math.random() * 1000000)).padStart(7, '0')}`;
         const output = this._getPath(".log");
         await mkdir(join(output, logId));

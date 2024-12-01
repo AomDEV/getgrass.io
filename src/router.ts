@@ -1,6 +1,7 @@
 import express from "express";
 import { Logger } from "./instance/logger";
 import { By, WebDriver } from "selenium-webdriver";
+import axios from "axios";
 
 export class Router {
     serve(
@@ -16,10 +17,13 @@ export class Router {
 
             const earning = Number(earningElement);
             const quality = Number(qualityElement.split('%')[0]);
+
+            const origin = await axios.get(`https://httpbin.co/ip`).catch(() => null);
             res.json({
                 earning,
                 quality,
                 uptime: (new Date().getTime() - startTime) / 1000 / 60,
+                origin: origin?.data?.origin,
             });
         });
 
