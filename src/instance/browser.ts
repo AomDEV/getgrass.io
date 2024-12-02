@@ -29,10 +29,8 @@ export class Browser {
         options.addArguments("--disable-gpu");
         if (!config.noHeadless) options.addArguments("--headless=new");
         if (!config.sandbox) options.addArguments("--no-sandbox");
-        if (Number(process.env.USE_HTTP_PROXY || "0") === 1 && process.env.HTTP_PROXY_URL) {
-            console.log(process.env.HTTP_PROXY_URL);
+        if (Number(process.env.USE_HTTP_PROXY || "0") === 1 && process.env.HTTP_PROXY_URL)
             options.addArguments(`--proxy-server=${process.env.HTTP_PROXY_URL}`);
-        }
 
         if (config.extensionId && Array.isArray(config.extensionId) && config.extensionId.length > 0) {
             Logger.info(`Downloading ${config.extensionId.length} extensions`);
