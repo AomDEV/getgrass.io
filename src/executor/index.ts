@@ -20,6 +20,16 @@ export class Executor extends Browser {
         });
         this._driver = builder.build();
 
+        const cdp = await this._driver.createCDPConnection("page");
+        if (
+            Number(process.env.USE_HTTP_PROXY || "0") === 1 && 
+            process.env.HTTP_PROXY_URL && 
+            process.env.HTTP_PROXY_USERNAME &&
+            process.env.HTTP_PROXY_PASSWORD
+        ) {
+            await this._driver.register(process.env.HTTP_PROXY_USERNAME, process.env.HTTP_PROXY_PASSWORD, cdp);
+        }
+
         await this._driver.manage().window().maximize();
         await this._driver.manage().deleteAllCookies();
 

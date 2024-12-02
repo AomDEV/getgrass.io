@@ -27,17 +27,11 @@ export class Browser {
         const options = new chrome.Options();
         options.addArguments("--disable-dev-shm-usage");
         options.addArguments("--disable-gpu");
-        if (!config.noHeadless) options.addArguments("--headless");
+        if (!config.noHeadless) options.addArguments("--headless=new");
         if (!config.sandbox) options.addArguments("--no-sandbox");
-        if (process.env.HTTP_PROXY_URL) {
-            try {
-                options.setProxy({
-                    proxyType: "manual",
-                    httpProxy: process.env.HTTP_PROXY_URL,
-                    sslProxy: process.env.HTTP_PROXY_URL,
-                    noProxy: 'localhost,127.0.0.1',
-                })
-            } catch { }
+        if (Number(process.env.USE_HTTP_PROXY || "0") === 1 && process.env.HTTP_PROXY_URL) {
+            console.log(process.env.HTTP_PROXY_URL);
+            options.addArguments(`--proxy-server=${process.env.HTTP_PROXY_URL}`);
         }
 
         if (config.extensionId && Array.isArray(config.extensionId) && config.extensionId.length > 0) {
