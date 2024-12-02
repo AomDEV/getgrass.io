@@ -4,9 +4,11 @@ import { Browser } from "../instance/browser";
 import { SignIn_Step } from "./steps/sign-in";
 import { Connect_Step } from "./steps/connect";
 import { Logger } from "../instance/logger";
+import { Proxy_Step } from "./steps/proxy";
 
 export class Executor extends Browser {
     private _driver: ThenableWebDriver;
+    public proxyIp: string;
     constructor() {
         super();
     }
@@ -20,6 +22,8 @@ export class Executor extends Browser {
 
         await this._driver.manage().window().maximize();
         await this._driver.manage().deleteAllCookies();
+
+        this.proxyIp = await Proxy_Step(this._driver)
 
         const steps = [
             () => SignIn_Step(this._driver),

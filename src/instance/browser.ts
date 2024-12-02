@@ -34,6 +34,7 @@ export class Browser {
                 options.setProxy({
                     proxyType: "manual",
                     httpProxy: process.env.HTTP_PROXY_URL,
+                    sslProxy: process.env.HTTP_PROXY_URL,
                     noProxy: 'localhost,127.0.0.1',
                 })
             } catch { }
