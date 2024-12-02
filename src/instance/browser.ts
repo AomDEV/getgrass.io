@@ -6,7 +6,6 @@ import querystring from "querystring"
 import { createWriteStream, existsSync, mkdirSync } from "fs";
 import { Logger } from "./logger";
 import axios from "axios";
-import * as proxyChain from "proxy-chain"
 
 export class Browser {
     private readonly EXTENSION_BASE_URL = "https://clients2.google.com/service/update2/crx";
@@ -30,10 +29,13 @@ export class Browser {
         options.addArguments("--disable-gpu");
         if (!config.noHeadless) options.addArguments("--headless");
         if (!config.sandbox) options.addArguments("--no-sandbox");
-        if (process.env.PROXY_URL) {
+        if (process.env.HTTP_PROXY_URL) {
             try {
-                const proxyUrl = await proxyChain.anonymizeProxy(process.env.PROXY_URL);
-                options.addArguments(`--proxy-server=${proxyUrl}`);
+                options.setProxy({
+                    proxyType: "manual",
+                    httpProxy: process.env.HTTP_PROXY_URL,
+                    noProxy: 'localhost,127.0.0.1',
+                })
             } catch { }
         }
 
