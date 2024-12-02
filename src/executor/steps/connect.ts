@@ -1,4 +1,4 @@
-import { By, ThenableWebDriver } from "selenium-webdriver"
+import { By, ThenableWebDriver, WebElement } from "selenium-webdriver"
 import { Browser } from "../../instance/browser"
 import { Logger } from "../../instance/logger"
 import { delay } from "../../utils"
@@ -10,7 +10,9 @@ export async function Connect_Step(driver: ThenableWebDriver) {
     Logger.info('Waiting for connection');
     while (true) {
         try {
-            await driver.findElement(By.xpath('//*[contains(text(), "Grass is Connected")]'))
+            const connectButton: WebElement = await driver.findElement(By.xpath('//button[contains(text(), "CONNECT GRASS")]'));
+            await connectButton.click();
+            await new Browser().report(driver)
             break;
         } catch {
             await delay(1000);
@@ -18,11 +20,25 @@ export async function Connect_Step(driver: ThenableWebDriver) {
             if (sleep > 30) {
                 Logger.warning('Could not connect to the server');
                 await new Browser().report(driver)
+                break;
+            }
+        }
+    };
+    sleep = 0;
+    while (true) {
+        try {
+            await driver.findElement(By.xpath('//*[contains(text(), "Grass is Connected")]'));
+            break;
+        } catch {
+            await delay(1000);
+            sleep += 1
+            if (sleep > 30) {
+                Logger.warning('Something went wrong');
+                await new Browser().report(driver)
                 return false;
             }
         }
     }
-    await new Browser().report(driver)
     Logger.success('Session connected');
     return true;
 }
